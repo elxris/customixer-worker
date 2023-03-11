@@ -151,12 +151,14 @@ router.get("/customizer/:script.stl", withKeys, async (request, env, context) =>
 
   const res = new Response(body, cacheResponse ?? fileResponse);
   if (fileResponse) {
-	  res.headers.set('Content-Disposition' ,`attachment; filename="${script}-${crypto.randomUUID()}.stl"`);
-	  res.headers.set('Cache-Control', 'public, max-age=604800');
-	  if (script === 'cacti' && 'cacti_seed' in query) {
+		const uuid = crypto.randomUUID();
+		res.headers.set('Content-Disposition' ,`attachment; filename="${script}-${uuid}.stl"`);
+		res.headers.set('Cache-Control', 'public, max-age=604800');
+		env.KV.put(uuid, urlRequest);
+		if (script === 'cacti' && 'cacti_seed' in query) {
 		const newRes = new Response(bodyCopy, res);
 		context.waitUntil(Cache.put(urlRequest, newRes));
-	  }
+		}
   }
 
   return res;
