@@ -1,0 +1,11 @@
+name = "tresdefilia-customixer" # todo
+main = "index.js"
+compatibility_date = "2022-05-03"
+
+kv_namespaces = [
+  { binding = "KV", id = "e08c2e89dad04aaca01fb346cd2b72d3" }
+]
+
+[[r2_buckets]]
+binding = 'R2' # <~ valid JavaScript variable name
+bucket_name = 'tresdefilia'
