@@ -172,10 +172,10 @@ router.get(
       }
     }
 
-    if (!query.has('cacti_seed')) {
+    if (!'cacti_seed' in query) {
       res.headers.delete('cacti_seed');
     }
-
+    
     return res;
   },
 );
