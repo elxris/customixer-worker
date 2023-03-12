@@ -172,6 +172,10 @@ router.get(
       }
     }
 
+    if (!query.has('cacti_seed')) {
+      res.headers.delete('cacti_seed');
+    }
+
     return res;
   },
 );
