@@ -138,13 +138,13 @@ router.get(
     const { query } = request;
 
     const _url = new URL("https://customizer-xdtwgffqpa-uc.a.run.app/");
-    url.searchParams.set("script", script);
+    _url.searchParams.set("script", script);
     Object.entries(query).forEach(([key, value]) =>
-      url.searchParams.set(key, value)
+      _url.searchParams.set(key, value)
     );
     if (script === "cacti") {
-      if (!url.searchParams.has("cacti_seed")) {
-        url.searchParams.set("cacti_seed", Math.random());
+      if (!_url.searchParams.has("cacti_seed")) {
+        _url.searchParams.set("cacti_seed", Math.random());
       }
     }
 
