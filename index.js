@@ -137,7 +137,7 @@ router.get(
     const { script } = request.params;
     const { query } = request;
 
-    const url = new URL("https://customizer-xdtwgffqpa-uc.a.run.app/");
+    const _url = new URL("https://customizer-xdtwgffqpa-uc.a.run.app/");
     url.searchParams.set("script", script);
     Object.entries(query).forEach(([key, value]) =>
       url.searchParams.set(key, value)
@@ -148,9 +148,9 @@ router.get(
       }
     }
 
-    const urlRequest = url.toString();
+    const url = _url.toString();
 
-    const cacheResponse = await Cache.match(urlRequest);
+    const cacheResponse = await Cache.match(url);
     console.log(`Cache ${cacheResponse ? "" : "not "}found`, url);
     const fileResponse = cacheResponse ? undefined : await fetch(url);
 
@@ -165,10 +165,10 @@ router.get(
         `attachment; filename="${script}-${uuid}.stl"`,
       );
       res.headers.set("Cache-Control", "public, max-age=604800");
-      context.waitUntil(env.KV.put(`${script}-${uuid}`, urlRequest));
+      context.waitUntil(env.KV.put(`${script}-${uuid}`, url));
       if (script === "cacti" && "cacti_seed" in query) {
         const newRes = new Response(bodyCopy, res);
-        context.waitUntil(Cache.put(urlRequest, newRes));
+        context.waitUntil(Cache.put(url, newRes));
       }
     }
 
