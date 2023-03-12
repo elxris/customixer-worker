@@ -1,13 +1,13 @@
 import { Router } from "itty-router";
-import { createCors } from 'itty-cors'
+import { createCors } from "itty-cors";
 
 const Cache = caches.default;
 
 // Create a new router
 const router = Router();
 
-const {preflight} = createCors();
-router.all('*', preflight);
+const { preflight } = createCors();
+router.all("*", preflight);
 
 let privateKey, publicKey;
 
@@ -133,36 +133,51 @@ router.post("/post", async (request) => {
   });
 });
 
-router.get("/customizer/:script.stl", withKeys, async (request, env, context) => {
-  const { script } = request.params;
-  const { query } = request;
-  
-  const url = new URL("https://customizer-xdtwgffqpa-uc.a.run.app/");
-  url.searchParams.set("script", script);
-  Object.entries(query).forEach(([key, value]) => url.searchParams.set(key, value));
+router.get(
+  "/customizer/:script.stl",
+  withKeys,
+  async (request, env, context) => {
+    const { script } = request.params;
+    const { query } = request;
 
-  const urlRequest = url.toString();
-  
-  const cacheResponse = await Cache.match(urlRequest)
-  console.log(`Cache ${cacheResponse ? '': 'not '}found`, url)
-  const fileResponse = cacheResponse ? undefined : await fetch(url);
+    const url = new URL("https://customizer-xdtwgffqpa-uc.a.run.app/");
+    url.searchParams.set("script", script);
+    Object.entries(query).forEach(([key, value]) =>
+      url.searchParams.set(key, value)
+    );
+    if (script === "cacti") {
+      if (!url.searchParams.has("cacti_seed")) {
+        url.searchParams.set("cacti_seed", Math.random());
+      }
+    }
 
-  const [body, bodyCopy] = cacheResponse?.body.tee() ?? fileResponse?.body.tee() 
+    const urlRequest = url.toString();
 
-  const res = new Response(body, cacheResponse ?? fileResponse);
-  if (fileResponse) {
-		const uuid = crypto.randomUUID();
-		res.headers.set('Content-Disposition' ,`attachment; filename="${script}-${uuid}.stl"`);
-		res.headers.set('Cache-Control', 'public, max-age=604800');
-		env.KV.put(uuid, urlRequest);
-		if (script === 'cacti' && 'cacti_seed' in query) {
-		const newRes = new Response(bodyCopy, res);
-		context.waitUntil(Cache.put(urlRequest, newRes));
-		}
-  }
+    const cacheResponse = await Cache.match(urlRequest);
+    console.log(`Cache ${cacheResponse ? "" : "not "}found`, url);
+    const fileResponse = cacheResponse ? undefined : await fetch(url);
 
-  return res;
-});
+    const [body, bodyCopy] = cacheResponse?.body.tee() ??
+      fileResponse?.body.tee();
+
+    const res = new Response(body, cacheResponse ?? fileResponse);
+    if (fileResponse) {
+      const uuid = crypto.randomUUID();
+      res.headers.set(
+        "Content-Disposition",
+        `attachment; filename="${script}-${uuid}.stl"`,
+      );
+      res.headers.set("Cache-Control", "public, max-age=604800");
+      context.waitUntil(env.KV.put(`${script}-${uuid}`, urlRequest));
+      if (script === "cacti" && "cacti_seed" in query) {
+        const newRes = new Response(bodyCopy, res);
+        context.waitUntil(Cache.put(urlRequest, newRes));
+      }
+    }
+
+    return res;
+  },
+);
 
 router.post(
   "/customizer/upload/:key/:signature",
