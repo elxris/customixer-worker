@@ -1,4 +1,5 @@
 import { Router } from "itty-router";
+import { error, json, missing } from 'itty-router-extras'
 import { createCors } from "itty-cors";
 
 const Cache = caches.default;
@@ -126,11 +127,7 @@ router.post("/post", async (request) => {
   // Serialise the JSON to a string.
   const returnData = JSON.stringify(fields, null, 2);
 
-  return new Response(returnData, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  return json(returnData);
 });
 
 router.get(
@@ -210,8 +207,11 @@ above, therefore it's useful as a 404 (and avoids us hitting worker exceptions, 
 
 Visit any page that doesn't exist (e.g. /foobar) to see it in action.
 */
-router.all("*", () => new Response("404, not found!", { status: 404 }));
+router.all("*", () => missing("404, not found!"));
 
 export default {
-  fetch: router.handle,
-};
+  fetch: (...args) => router
+                        .handle(...args)
+                        .catch(err => error(500, err.stack))
+                        .then(corsify) // cors should be applied to error responses as well
+}
