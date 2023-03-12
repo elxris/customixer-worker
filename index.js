@@ -7,7 +7,7 @@ const Cache = caches.default;
 // Create a new router
 const router = Router();
 
-const { preflight } = createCors();
+const { preflight, corsify } = createCors();
 router.all("*", preflight);
 
 let privateKey, publicKey;
