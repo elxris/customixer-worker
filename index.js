@@ -173,7 +173,7 @@ router.get(
     }
 
     if (!('cacti_seed' in query)) {
-      res.headers.delete('cacti_seed');
+      res.headers.delete('Cache-Control');
     }
     
     return res;
