@@ -164,6 +164,9 @@ router.get(
         "Content-Disposition",
         `attachment; filename="${script}-${uuid}.stl"`,
       );
+      res.headers.set(
+        "Content-Type", "model/x.stl-binary"
+      )
       res.headers.set("Cache-Control", "public, max-age=604800");
       context.waitUntil(env.KV.put(`${script}-${uuid}`, url));
       if (script === "cacti" && "cacti_seed" in query) {
