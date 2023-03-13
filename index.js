@@ -1,5 +1,5 @@
 import { Router } from "itty-router";
-import { error, json, missing } from 'itty-router-extras'
+import { error, json, missing } from "itty-router-extras";
 import { createCors } from "itty-cors";
 
 const Cache = caches.default;
@@ -152,7 +152,11 @@ router.get(
 
     const cacheResponse = await Cache.match(url);
     console.log(`Cache ${cacheResponse ? "" : "not "}found`, url);
-    const fileResponse = cacheResponse ? undefined : await fetch(url);
+    const fileResponse = cacheResponse
+      ? undefined
+      : await fetch(url, {
+        headers: { "Accept-Encoding": "gzip, deflate, br" },
+      });
 
     const [body, bodyCopy] = cacheResponse?.body.tee() ??
       fileResponse?.body.tee();
@@ -165,8 +169,9 @@ router.get(
         `attachment; filename="${script}-${uuid}.stl"`,
       );
       res.headers.set(
-        "Content-Type", "model/x.stl-binary"
-      )
+        "Content-Type",
+        "text/plain",
+      );
       res.headers.set("Cache-Control", "public, max-age=604800");
       context.waitUntil(env.KV.put(`${script}-${uuid}`, url));
       if (script === "cacti" && "cacti_seed" in query) {
@@ -175,10 +180,10 @@ router.get(
       }
     }
 
-    if (!('cacti_seed' in query)) {
-      res.headers.delete('Cache-Control');
+    if (!("cacti_seed" in query)) {
+      res.headers.delete("Cache-Control");
     }
-    
+
     return res;
   },
 );
@@ -217,8 +222,9 @@ Visit any page that doesn't exist (e.g. /foobar) to see it in action.
 router.all("*", () => missing("404, not found!"));
 
 export default {
-  fetch: (...args) => router
-                        .handle(...args)
-                        .catch(err => error(500, err.stack))
-                        .then(corsify) // cors should be applied to error responses as well
-}
+  fetch: (...args) =>
+    router
+      .handle(...args)
+      .catch((err) => error(500, err.stack))
+      .then(corsify), // cors should be applied to error responses as well
+};
