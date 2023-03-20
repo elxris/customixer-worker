@@ -55,17 +55,15 @@ router.get(
         "Content-Type",
         "text/plain",
       );
-      res.headers.set("Cache-Control", "public, max-age=604800");
       // context.waitUntil(env.KV.put(`${script}-${uuid}`, url));
       if (script === "cacti" && "cacti_seed" in query) {
         const newRes = new Response(bodyCopy, res);
+        newRes.headers.set("Cache-Control", "max-age=604800");
         context.waitUntil(Cache.put(url, newRes));
       }
     }
-
-    if (!("cacti_seed" in query)) {
-      res.headers.delete("Cache-Control");
-    }
+    
+    res.headers.set("Cache-Control", "no-store");
 
     return res;
   },
